@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LogMeal Test</title>
+    <style>
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #000000;
+        }
+
+        h1 {
+            text-align: left;
+            margin-left: 20px;
+            margin-top: 60px;
+            margin-bottom: 20px;
+            color: #00a300;
+            font-size: 36px;
+        }
+
+        h2 {
+            text-align: left;
+            margin-left: 20px;
+            margin-bottom: 20px;
+            margin-top: 60px;
+            color: #00a300;
+        }
+        form {
+            margin-bottom: 20px;
+            margin-left: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #2e2e2e;
+        }
+
+        input[type="submit"], input[type="button"] {
+            cursor: pointer;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        input[type="submit"]{
+            margin-left: 20px;
+        }
+        input[type="button"]{
+            margin-left: 40px;
+        }
+        input[type="submit"]:hover, input[type="button"]:hover {
+            background-color: #45a049;
+        }
+
+        #response-message, #analysis-result {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        #image-list {
+            margin-left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 25%;
+        }
+
+        .image-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+        }
+
+        .image-code {
+            font-weight: normal;
+            color: #555;
+        }
+
+        .image-id {
+            font-weight: bold;
+            color: #222;
+        }
+
+        
+    </style>
+</head>
+<body>
+    <h1>LogMeal Test</h1>
+    <h2>Upload Image</h2>
+<form id="upload-form">
+    <input type="file" name="image" id="image-input">
+    <input type="submit" value="Upload from Computer">
+</form>
+
+<form id="upload-url-form">
+    <input type="text" name="image-url" id="image-url" placeholder="Image URL">
+    <input type="submit" value="Upload from URL" style="margin-left: 115px;">
+</form>
+<div id="response-message"></div>
+
+    <h2>Image Analysis</h2>
+    <form id="analysis-form">
+        <label for="image-id">Image ID:</label>
+        <input type="text" name="image-id" id="image-id">
+        <input type="button" value="Analyze" onclick="analyseImage()">
+    </form>
+    <div id="analysis-result"></div>
+
+    <h2>List of Uploaded Images</h2>
+    <div id="image-list">
+        <!-- Aquí se mostrarán los image_ids -->
+    </div>
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            uploadImage();
+        });
+
+        // Función para cargar una imagen seleccionandola
+        function uploadImageFromComputer() {
+    const formData = new FormData();
+    const imageInput = document.getElementById('image-input');
+    formData.append('image', imageInput.files[0]);
+
+    fetch('/upload_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const responseMessage = document.getElementById('response-message');
+        responseMessage.style.marginLeft = '20px';
+
+        if (data.success) {
+            responseMessage.innerHTML = `Image uploaded successfully. Image ID: ${data.image_id}`;
+        } else {
+            responseMessage.innerHTML = `Error uploading image: ${data.error}`;
+        }
+    })
+    .catch(error => {
+        const responseMessage = document.getElementById('response-message');
+        responseMessage.style.marginLeft = '20px';
+        responseMessage.innerHTML = `Error uploading image: ${error.message}`;
+    });
+}
+
+// Función para cargar una imagen desde una URL
+function uploadImageFromURL() {
+    const formData = new FormData();
+    const imageUrlInput = document.getElementById('image-url');
+    formData.append('image_url', imageUrlInput.value);
+
+    fetch('/upload_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const responseMessage = document.getElementById('response-message');
+        responseMessage.style.marginLeft = '20px';
+
+        if (data.success) {
+            responseMessage.innerHTML = `Image uploaded successfully. Image ID: ${data.image_id}`;
+        } else {
+            responseMessage.innerHTML = `Error uploading image: ${data.error}`;
+        }
+    })
+    .catch(error => {
+        const responseMessage = document.getElementById('response-message');
+        responseMessage.style.marginLeft = '20px';
+        responseMessage.innerHTML = `Error uploading image: ${error.message}`;
+    });
+}
+
+// Asociar las funciones a los botones de carga
+document.getElementById('upload-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    uploadImageFromComputer();
+});
+
+document.getElementById('upload-url-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    uploadImageFromURL();
+});
+// Función para ver el tamaño de una imagen determinada
+function analyseImage() {
+            const imageId = document.getElementById('image-id').value;
+
+            fetch(`/analyse_image/${imageId}`, {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const analysisResult = document.getElementById('analysis-result');
+                if (data.success) {
+                    analysisResult.innerHTML = `Image analysis result: Width: ${data.width}, Height: ${data.height}`;
+                    analysisResult.style.marginLeft = '20px';
+                } else {
+                    analysisResult.innerHTML = `Error: ${data.error}`;
+                    analysisResult.style.marginLeft = '20px';
+                }
+            })
+            .catch(error => {
+                const analysisResult = document.getElementById('analysis-result');
+                analysisResult.innerHTML = `Error analyzing image: ${error.message}`;
+                analysisResult.style.marginLeft = '20px';
+                
+            });
+        }
+//función para listar los image_id de las imagenes
+        function listImages() {
+            fetch('/list_images', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const imageList = document.getElementById('image-list');
+                    imageList.innerHTML = '';
+
+                    data.images.forEach(image => {
+                        const listItem = document.createElement('div');
+                        listItem.className = 'image-item';
+
+                        const imageId = document.createElement('span');
+                        imageId.className = 'image-id';
+                        imageId.textContent = 'Image ID: ';
+
+                        const imageCode = document.createElement('span');
+                        imageCode.className = 'image-code';
+                        imageCode.textContent = image.image_id;
+
+                        listItem.appendChild(imageId);
+                        listItem.appendChild(imageCode);
+                        imageList.appendChild(listItem);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error listing images:', error);
+            });
+        }
+        listImages();
+    </script>
+</body>
+</html>
